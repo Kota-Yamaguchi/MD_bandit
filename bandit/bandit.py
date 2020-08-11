@@ -33,7 +33,7 @@ class Bandit:
 
 
 	def run(self,banditScoreName="ContactMap"):
-		
+		print("Probability  of one reaction coordinate {}".format(self.RC_prob))		
 		choice = np.random.choice(self.RC_list, p = self.RC_prob) 
 		result = self.calcRC[choice](None)
 		rank = self.RC.ranking(result)
@@ -41,25 +41,27 @@ class Bandit:
 		rank_argv = [int(n) for n in rank_argv ]
 		rankerValue = self.calcRC[banditScoreName](rank_argv)
 		topRanker = np.max(rankerValue)
-		if os.path.exists(self.cudir+"/preBanditScore.npy") == False:
-			
-			np.save(self.cudir+"/preBanditScore.npy", topRanker)
-			delta = topRanker
-			self.score[choice] = delta
-			np.save(self.cudir+"/Score.npy", [self.score])
-		else:
-			preBanditScore = np.load(self.cudir+"/preBanditScore.npy",allow_pickle=True)
-			delta = topRanker - preBanditScore
-			preScore = np.load(self.cudir+"/Score.npy",allow_pickle=True)[0]
-			self.score[choice] = delta
-			for i in preScore:
-				self.score[i]+=(self.learningRate * preScore[i])	
-			np.save(self.cudir+"/Score.npy", [self.score])
+
+		self._score(topRanker, choice)
+		#if os.path.exists(self.cudir+"/preBanditScore.npy") == False:
+		#	
+		#	np.save(self.cudir+"/preBanditScore.npy", topRanker)
+		#	delta = topRanker
+		#	self.score[choice] = delta
+		#	np.save(self.cudir+"/Score.npy", [self.score])
+		#else:
+		#	preBanditScore = np.load(self.cudir+"/preBanditScore.npy",allow_pickle=True)
+		#	delta = topRanker - preBanditScore
+		#	preScore = np.load(self.cudir+"/Score.npy",allow_pickle=True)[0]
+		#	self.score[choice] = delta
+		#	for i in preScore:
+		#		self.score[i]+=(self.learningRate * preScore[i])	
+		#	np.save(self.cudir+"/Score.npy", [self.score])
 		
 		self._updateProbabilitySoftmax(self.score, tau=10)
 			
 	def _updateProbabilitySoftmax(self, score, tau = 10):
-		print("Probability updated ")
+		print("Update Probability ")
 		n = 0
 		sigma = 0
 		for i in self.RC_list:
@@ -72,7 +74,22 @@ class Bandit:
 		return self.RC_prob
 		
 
-	def _score(self, ):
+	def _score(self, Ranker, choiceRC):
+		if os.path.exists(self.cudir+"/preBanditScore.npy") == False:
+			
+			np.save(self.cudir+"/preBanditScore.npy", Ranker)
+			delta = Ranker
+			self.score[choiceRC] = delta
+			np.save(self.cudir+"/Score.npy", [self.score])
+		else:
+			preBanditScore = np.load(self.cudir+"/preBanditScore.npy",allow_pickle=True)
+			delta = Ranker - preBanditScore
+			preScore = np.load(self.cudir+"/Score.npy",allow_pickle=True)[0]
+			self.score[choiceRC] = delta
+			for i in preScore:
+				self.score[i]+=(self.learningRate * preScore[i])	
+			np.save(self.cudir+"/Score.npy", [self.score])
+
 		
 		
 if __name__=="__main__":

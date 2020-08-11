@@ -61,6 +61,7 @@ class Analysis_impl2(Analysis):
 	def pca(self, n_components=30, select_="name CA",rank_argv=None):
       #if self.option.option != True: 
         #pc_space = np.array([])
+		print("calculate Principle Component")
 		if os.path.exists(self.cudir+"/eigvec.npy") ==True:
 			pca = PCA(self.trj ,select="{}".format(select_)).run()
 			eig_vec = np.load(self.cudir+"/eigvec.npy")
