@@ -38,8 +38,6 @@ class Analysis_impl2(Analysis):
 		print("calculate ContactMap ")
 		d = map(lambda i : np.array(i), self.trj.trajectory)
 		d = np.array(list(d))
-		m = map(lambda i : d[i].reshape(d.shape[1]*3), range(d.shape[0]))
-		m = np.array(list(m))
 		
 		dist_M = map(lambda i : distance.cdist(d[i], d[i] ,metric="euclidean"), range(d.shape[0]))
 		dist_M = np.array(list(dist_M))
@@ -56,8 +54,6 @@ class Analysis_impl2(Analysis):
 		hist_dif = np.array(hist_dif)
 		hist_dif = self.min_max(hist_dif)	
 		if np.all(rank_argv) != None:
-			print(rank_argv)
-			print(hist_dif)
 			return hist_dif[rank_argv]				
 	
 		return hist_dif
@@ -70,7 +66,6 @@ class Analysis_impl2(Analysis):
 			eig_vec = np.load(self.cudir+"/eigvec.npy")
               #eig_vec = pre_eigen_vec
 			PC=pca.transform(self.trj.select_atoms("{}".format(select_)), n_components=n_components,eigen_vec = eig_vec)
-			print("axis",PC.shape)
               #pc_space = np.append(pc_space, PC, axis =0)
               #PC = np.dot(self.traj_row, pre_eigen_vec)
           
@@ -82,11 +77,8 @@ class Analysis_impl2(Analysis):
 			np.save(self.cudir+"/eigvec.npy", eig_vec)
               #pc_space = np.append(pc_space, PC, axis =1)
               
-		print("tar",PC.shape)       
 		PC_ref=pca.transform(self.ref.select_atoms("{}".format(select_)), n_components=n_components, eigen_vec = eig_vec)
-		print("ref",PC_ref.shape)
 		PC_ref=PC_ref.reshape(len(PC_ref[0]))
-		print("ref reshape",PC_ref.shape)
           
 		pcnorm = np.linalg.norm(PC, axis =1)
 		PCnormalize = [PC[i]/pcnorm[i] for i in range(len(pcnorm))]
@@ -97,10 +89,9 @@ class Analysis_impl2(Analysis):
 		PC_dif = np.dot(PCnormalize,PCnormalize_ref)
           
 		PC_dif = np.abs(PC_dif-1)
-		print("dif",PC_dif)
-		if rank_argv != None:
-                        return PC_dif[rank_argv]
-		return PC, PC_dif, eig_vec 
+#		if rank_argv != None:
+ #                       return PC_dif[rank_argv]
+		return PC_dif #eig_vec 
 	
 	def min_max(self, x, axis=None):
 		min = x.min(axis=axis, keepdims=True)
@@ -117,6 +108,5 @@ class Analysis_impl2(Analysis):
 			for i in range(len(hist)):
 				if hist[i] == Series(top_rank)[n]:
 					rank_argv.append(int(i))
-		print(type(rank_argv[0]))
 		score = np.array([rank_argv, top_rank])
 		return score

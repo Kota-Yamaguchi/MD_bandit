@@ -13,10 +13,10 @@ class Bandit:
 			self.RC_prob += 1/self.RC_list.shape[0]
 		
 		else:
-			self.RC_prob = np.load(self.cudir+"/prob.npy")
+			self.RC_prob = np.load(self.cudir+"/prob.npy",allow_pickle=True)
 			
 		if os.path.exists(self.cudir+"/Score.npy") == True:
-			self.score = np.load(self.cudir+"/Score.npy")
+			self.score = np.load(self.cudir+"/Score.npy",allow_pickle=True)[0]
 			self.choice = max(self.score)
 		else:
 			self.score = {"RMSD": 0,
@@ -46,32 +46,33 @@ class Bandit:
 			np.save(self.cudir+"/preBanditScore.npy", topRanker)
 			delta = topRanker
 			self.score[choice] = delta
-			np.save(self.cudir+"/Score.npy", self.score)
+			np.save(self.cudir+"/Score.npy", [self.score])
 		else:
-			preBanditScore = np.load(self.cudir+"/preBanditScore.npy")
+			preBanditScore = np.load(self.cudir+"/preBanditScore.npy",allow_pickle=True)
 			delta = topRanker - preBanditScore
-			preScore = np.load(self.cudir+"/Score.npy")
+			preScore = np.load(self.cudir+"/Score.npy",allow_pickle=True)[0]
 			self.score[choice] = delta
 			for i in preScore:
 				self.score[i]+=(self.learningRate * preScore[i])	
-			np.save(self.cudir+"/Score.npy", self.score)
+			np.save(self.cudir+"/Score.npy", [self.score])
 		
 		self._updateProbabilitySoftmax(self.score, tau=10)
 			
 	def _updateProbabilitySoftmax(self, score, tau = 10):
+		print("Probability updated ")
+		n = 0
+		sigma = 0
 		for i in self.RC_list:
-			self.prob = np.exp(score[i])/(np.sum(np.exp(score[i]/10)))
-		np.save(self.cudir+"/prob.npy", self.prob)
-		return self.prob
+			sigma += np.exp(score[i]/tau)
+		for i in self.RC_list:
+			print("{} : {}".format(i ,np.exp(score[i]/tau)/sigma))
+			self.RC_prob[n] = np.exp(score[i]/tau)/sigma
+			n+=1
+		np.save(self.cudir+"/prob.npy", self.RC_prob)
+		return self.RC_prob
 		
 
-	#def _score(self, ):
-		
-		#current_rankerのscore計算
-	#	currentRC = Analysis_inple2(pre_traj, top, ref)
-	#	scoreRC = {"RMSD" : (lambda : RC.rootMeanSquareDeviation()) } 
-	#	scoreRC["ContactMap"] = lambda : RC.contactMap()
-         #       scoreRC["PCA"] = lambda : RC.pca()
+	def _score(self, ):
 		
 		
 if __name__=="__main__":

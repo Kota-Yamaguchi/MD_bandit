@@ -149,7 +149,6 @@ class PCA_MOD(PCA):
         """
         if np.any(eigen_vec) != None:
             self.p_components = eigen_vec
-            print(eigen_vec - self.p_components)
         if not self._calculated:
             raise ValueError('Call run() on the PCA before using transform')
 
