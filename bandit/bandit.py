@@ -34,7 +34,7 @@ class Bandit:
 		
 
 
-	def run(self,banditScoreName=self.banditScoreName):
+	def run(self,banditScoreName):
 		print("Probability  of one reaction coordinate {}".format(self.RC_prob))		
 		choice = np.random.choice(self.RC_list, p = self.RC_prob) 
 		result = self.calcRC[choice](None)
@@ -107,8 +107,9 @@ if __name__=="__main__":
 		argparser.add_argument("-s","--setting", help="gro file.")
 		argparser.add_argument("-t","--traj", nargs="*", help="trajectory.")
 		argparser.add_argument("-r","--reference", help="referense .")
+		argparser.add_argument("-b","--banditscore",default="ContactMap", help="BanditScore .")
 		args = argparser.parse_args()
 		return args
 	option = get_option()
 	bandit = Bandit(option.traj, option.setting ,option.reference)
-	bandit.run()
+	bandit.run(option.banditscore)
