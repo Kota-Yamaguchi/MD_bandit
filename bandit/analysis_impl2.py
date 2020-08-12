@@ -58,42 +58,53 @@ class Analysis_impl2(Analysis):
 	
 		return hist_dif
 
-	def pca(self, n_components=30, select_="name CA",rank_argv=None):
+	def pca(self, comp=30, select_="name CA",rank_argv=None):
       #if self.option.option != True: 
         #pc_space = np.array([])
+
+		n_comp = 30
 		print("calculate Principle Component")
 		if os.path.exists(self.cudir+"/eigvec.npy") ==True:
 			pca = PCA(self.trj ,select="{}".format(select_)).run()
 			eig_vec = np.load(self.cudir+"/eigvec.npy")
               #eig_vec = pre_eigen_vec
-			PC=pca.transform(self.trj.select_atoms("{}".format(select_)), n_components=n_components,eigen_vec = eig_vec)
-              #pc_space = np.append(pc_space, PC, axis =0)
+			PC=pca.transform(self.trj.select_atoms("{}".format(select_)), n_components=n_comp,eigen_vec = eig_vec)
+			print("PC:{}".format(PC.shape))
+	#pc_space = np.append(pc_space, PC, axis =0)
               #PC = np.dot(self.traj_row, pre_eigen_vec)
           
 		else:
 			print("You don't have eigen vector, make eigvec ")
 			pca = PCA(self.trj ,select="{}".format(select_)).run()
-			PC=pca.transform(self.trj.select_atoms("{}".format(select_)), n_components=n_components)
+			PC=pca.transform(self.trj.select_atoms("{}".format(select_)), n_components=n_comp)
 			eig_vec = pca.p_components
+			print("PC:{}".format(PC.shape))
 			np.save(self.cudir+"/eigvec.npy", eig_vec)
               #pc_space = np.append(pc_space, PC, axis =1)
               
-		PC_ref=pca.transform(self.ref.select_atoms("{}".format(select_)), n_components=n_components, eigen_vec = eig_vec)
+		PC_ref=pca.transform(self.ref.select_atoms("{}".format(select_)), n_components=n_comp, eigen_vec = eig_vec)
 		PC_ref=PC_ref.reshape(len(PC_ref[0]))
-          
-		pcnorm = np.linalg.norm(PC, axis =1)
-		PCnormalize = [PC[i]/pcnorm[i] for i in range(len(pcnorm))]
-		PCnormalize = np.array(PCnormalize)
-
-		pcrefnorm = np.linalg.norm(PC_ref) 
-		PCnormalize_ref = PC_ref/pcrefnorm
-		PC_dif = np.dot(PCnormalize,PCnormalize_ref)
-          
-		PC_dif = np.abs(PC_dif-1)
+		dot_dif =  PC - PC_ref
+		score = np.sum(np.abs(dot_dif),axis =1)
+		print("PC score {}".format(score))
+		return score
+         # 
+	#	pcnorm = np.linalg.norm(PC, axis =1)
+	#	PCnormalize = [PC[i]/pcnorm[i] for i in range(len(pcnorm))]
+	#	PCnormalize = np.array(PCnormalize)
+#
+#		pcrefnorm = np.linalg.norm(PC_ref) 
+#		PCnormalize_ref = PC_ref/pcrefnorm
+#		PC_dif = np.dot(PCnormalize,PCnormalize_ref)
+ #         
+#		PC_dif = np.abs(PC_dif-1)
 #		if rank_argv != None:
  #                       return PC_dif[rank_argv]
-		return PC_dif #eig_vec 
-	
+#		return PC_dif #eig_vec 
+		
+				
+
+
 	def min_max(self, x, axis=None):
 		min = x.min(axis=axis, keepdims=True)
 		max = x.max(axis=axis, keepdims=True)

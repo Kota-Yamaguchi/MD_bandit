@@ -38,6 +38,7 @@ class Bandit:
 		print("Probability  of one reaction coordinate {}".format(self.RC_prob))		
 		choice = np.random.choice(self.RC_list, p = self.RC_prob) 
 		result = self.calcRC[choice](None)
+		print(result.shape)
 		rank = self.RC.ranking(result,rank=self.rankNumber)
 
 		with open(self.cudir+"/rank.txt", "w") as f:
