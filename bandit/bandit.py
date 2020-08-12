@@ -7,6 +7,7 @@ class Bandit:
 		self.cudir = os.getcwd()
 		self.forgettingRate = 0.8
 		self.rankNumber = 100
+		self.banditScoreName = "ContactMap"
 		self.RC_list =np.array( ["RMSD", "ContactMap", "PCA"])
 		
 		if os.path.exists(self.cudir+"/prob.npy") == False:
@@ -33,7 +34,7 @@ class Bandit:
 		
 
 
-	def run(self,banditScoreName="ContactMap"):
+	def run(self,banditScoreName=self.banditScoreName):
 		print("Probability  of one reaction coordinate {}".format(self.RC_prob))		
 		choice = np.random.choice(self.RC_list, p = self.RC_prob) 
 		result = self.calcRC[choice](None)
@@ -81,7 +82,7 @@ class Bandit:
 		return self.RC_prob
 		
 
-	def _score(self, Ranker, choiceRC="ContactMap"):
+	def _score(self, Ranker, choiceRC):
 		if os.path.exists(self.cudir+"/preBanditScore.npy") == False:
 			
 			np.save(self.cudir+"/preBanditScore.npy", Ranker)
