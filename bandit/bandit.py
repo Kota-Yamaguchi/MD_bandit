@@ -5,7 +5,8 @@ import sys
 class Bandit:
 	def __init__(self, trj, top, ref):
 		self.cudir = os.getcwd()
-		self.learningRate = 0.8
+		self.forgettingRate = 0.8
+		self.rankNumber = 100
 		self.RC_list =np.array( ["RMSD", "ContactMap", "PCA"])
 		
 		if os.path.exists(self.cudir+"/prob.npy") == False:
@@ -36,7 +37,13 @@ class Bandit:
 		print("Probability  of one reaction coordinate {}".format(self.RC_prob))		
 		choice = np.random.choice(self.RC_list, p = self.RC_prob) 
 		result = self.calcRC[choice](None)
-		rank = self.RC.ranking(result)
+		rank = self.RC.ranking(result,rank=self.rankNumber)
+
+		with open(self.cudir+"/rank.txt", "w") as f:
+				f.write(str(rank.T))	
+
+
+
 		rank_argv = rank[0]
 		rank_argv = [int(n) for n in rank_argv ]
 		rankerValue = self.calcRC[banditScoreName](rank_argv)
@@ -74,7 +81,7 @@ class Bandit:
 		return self.RC_prob
 		
 
-	def _score(self, Ranker, choiceRC):
+	def _score(self, Ranker, choiceRC="ContactMap"):
 		if os.path.exists(self.cudir+"/preBanditScore.npy") == False:
 			
 			np.save(self.cudir+"/preBanditScore.npy", Ranker)
@@ -87,7 +94,7 @@ class Bandit:
 			preScore = np.load(self.cudir+"/Score.npy",allow_pickle=True)[0]
 			self.score[choiceRC] = delta
 			for i in preScore:
-				self.score[i]+=(self.learningRate * preScore[i])	
+				self.score[i]+=(self.forgettingRate * preScore[i])	
 			np.save(self.cudir+"/Score.npy", [self.score])
 
 		
